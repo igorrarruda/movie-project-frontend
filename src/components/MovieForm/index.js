@@ -24,6 +24,9 @@ const useStyles = makeStyles((theme) => ({
   h1: {
     padding: '8px 0',
   },
+  form: {
+    marginTop: '20px',
+  },
   buttonBox: {
     textAlign: 'right',
     marginTop: '20px',
@@ -55,7 +58,7 @@ export default function MovieForm({ id }) {
     init();
 
     return () => setMovie(cleanMovie);
-  }, [init]);
+  }, [init, cleanMovie]);
 
   const history = useHistory();
   const handleInputChange = (e) => {
@@ -72,7 +75,6 @@ export default function MovieForm({ id }) {
         'content-type': 'application/json',
       },
     };
-    let response = null;
     if (id) {
       const editMovie = {
         title: movie.title,
@@ -81,9 +83,9 @@ export default function MovieForm({ id }) {
         crew: movie.crew,
         cast: movie.cast,
       };
-      response = await api.put(`/movies/${id}`, editMovie, config);
+      await api.put(`/movies/${id}`, editMovie, config);
     } else {
-      response = await api.post(`/movies/`, movie, config);
+      await api.post(`/movies/`, movie, config);
     }
 
     history.push('/');
@@ -107,7 +109,7 @@ export default function MovieForm({ id }) {
         </Grid>
       </Grid>
       <Divider />
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} className={classes.form}>
         <Grid container spacing={3}>
           <Grid item xs={8}>
             <TextField

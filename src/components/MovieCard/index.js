@@ -53,7 +53,6 @@ const useStyles = makeStyles((theme) => ({
 
 export default function MovieCard({ movieItem, handleDelete }) {
   const [movie, setMovie] = useState(movieItem);
-  // const [reviews, setReviews] = useState(movie.reviews);
   const [color] = useState(randomColor({ luminosity: 'dark' }));
   const [anchorEl, setAnchorEl] = React.useState(null);
   const classes = useStyles();
@@ -74,20 +73,10 @@ export default function MovieCard({ movieItem, handleDelete }) {
   const beforeSubmit = async (review) => {
     let updatedMovie = movie;
     updatedMovie.reviews = [...movie.reviews, review];
+    updatedMovie.averageRatings =
+      updatedMovie.reviews.reduce((sum, review) => sum + review.rate, 0) /
+      updatedMovie.reviews.length;
     setMovie(updatedMovie);
-    console.log('review', review);
-    console.log('updatedMovie', updatedMovie);
-    console.log('reviews.length', updatedMovie.reviews.length);
-    console.log(
-      'reviews.reduce',
-      updatedMovie.reviews.reduce((sum, review) => sum + review.rate, 0)
-    );
-    setMovie({
-      ...movie,
-      averageRatings:
-        updatedMovie.reviews.reduce((sum, review) => sum + review.rate, 0) /
-        updatedMovie.reviews.length,
-    });
   };
 
   return (
