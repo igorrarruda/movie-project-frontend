@@ -1,26 +1,32 @@
 import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import { CssBaseline, withStyles } from '@material-ui/core';
+
+import Routes from './routes';
+import backgroundImage from './assets/images/undraw_book_lover_mkck.svg';
+
+const styles = (theme) => ({
+  '@global': {
+    html: {
+      height: '100%',
+    },
+    body: {
+      background: '#dfdfdf',
+      backgroundImage: `url(${backgroundImage})`,
+      backgroundPosition: 'bottom right',
+      backgroundSize: '400px',
+      backgroundRepeat: 'no-repeat',
+      height: '100%',
+    },
+  },
+});
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <React.Fragment>
+      <CssBaseline />
+      <Routes />
+    </React.Fragment>
   );
 }
 
-export default App;
+export default withStyles(styles)(App);
