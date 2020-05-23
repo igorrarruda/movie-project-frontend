@@ -1,37 +1,38 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 
-import { useHistory, Link } from 'react-router-dom';
-import {
-  TextField,
-  Button,
-  Grid,
-  Paper,
-  Typography,
-  Divider,
-  IconButton,
-  makeStyles,
-} from '@material-ui/core';
-
-import ArrowBackIcon from '@material-ui/icons/ArrowBack';
+import { useHistory } from 'react-router-dom';
+import { Button, Grid, LinearProgress, makeStyles } from '@material-ui/core';
+import { Formik, Field } from 'formik';
+import { TextField } from 'formik-material-ui';
+import * as Yup from 'yup';
 
 import api from '../../services/api';
 
 const useStyles = makeStyles((theme) => ({
-  root: {
-    margin: '20px 0',
-    padding: '10px 20px 40px',
-  },
-  h1: {
-    padding: '8px 0',
-  },
   form: {
     marginTop: '20px',
+  },
+  formField: {
+    marginTop: '10px',
   },
   buttonBox: {
     textAlign: 'right',
     marginTop: '20px',
   },
 }));
+
+const schema = Yup.object().shape({
+  title: Yup.string().required('O título é obrigatório'),
+  releaseYear: Yup.number()
+    .integer('O ano de lançamento deve ser numérico')
+    .positive('O ano de lançamento não pode ter valor negativo')
+    .min(1896, 'O ano de lançamento inválido')
+    .max(2100, 'O ano de lançamento inválido')
+    .required('O ano de lançamento é obrigatório'),
+  synopsis: Yup.string().required('A sinópse é obrigatória'),
+  crew: Yup.string().required('O Corpo técnico é obrigatório'),
+  cast: Yup.string().required('O Elenco é obrigatório'),
+});
 
 export default function MovieForm({ id }) {
   let cleanMovie = {
@@ -43,33 +44,23 @@ export default function MovieForm({ id }) {
   };
   const classes = useStyles();
   const [movie, setMovie] = useState(cleanMovie);
-  async function getMovie() {
-    if (!id) return;
-    const { data } = await api.get(`/movies/${id}`);
-
-    setMovie(data);
-  }
-
-  const init = useCallback(() => {
-    getMovie();
-  }, []);
+  const history = useHistory();
 
   useEffect(() => {
-    init();
+    if (!id) return;
+    api
+      .get(`/movies/${id}`)
+      .then(({ data }) => {
+        console.log(data);
+        setMovie(data);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  }, [id]);
 
-    return () => setMovie(cleanMovie);
-  }, [init, cleanMovie]);
-
-  const history = useHistory();
-  const handleInputChange = (e) => {
-    setMovie({
-      ...movie,
-      [e.target.name]: e.target.value,
-    });
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const submitForm = async (values) => {
+    await new Promise((resolve) => setTimeout(resolve, 1000));
     const config = {
       headers: {
         'content-type': 'application/json',
@@ -77,94 +68,91 @@ export default function MovieForm({ id }) {
     };
     if (id) {
       const editMovie = {
-        title: movie.title,
-        synopsis: movie.synopsis,
-        releaseYear: movie.releaseYear,
-        crew: movie.crew,
-        cast: movie.cast,
+        title: values.title,
+        synopsis: values.synopsis,
+        releaseYear: values.releaseYear,
+        crew: values.crew,
+        cast: values.cast,
       };
       await api.put(`/movies/${id}`, editMovie, config);
     } else {
-      await api.post(`/movies/`, movie, config);
+      await api.post(`/movies/`, values, config);
     }
 
-    history.push('/');
     setMovie(cleanMovie);
+    history.push('/');
   };
 
   return (
-    <Paper className={classes.root}>
-      <Grid container spacing={3}>
-        <Grid item xs={2}>
-          <Link to="/" style={{ textDecoration: 'none' }}>
-            <IconButton>
-              <ArrowBackIcon />
-            </IconButton>
-          </Link>
-        </Grid>
-        <Grid item xs={10}>
-          <Typography className={classes.h1} variant="h5" component="h1">
-            Cadastrar novo filme
-          </Typography>
-        </Grid>
-      </Grid>
-      <Divider />
-      <form onSubmit={handleSubmit} className={classes.form}>
-        <Grid container spacing={3}>
-          <Grid item xs={8}>
-            <TextField
-              id="title"
-              name="title"
-              label="Título"
-              onChange={handleInputChange}
-              value={movie.title}
-              fullWidth
-            />
+    <Formik
+      initialValues={movie}
+      enableReinitialize
+      onSubmit={submitForm}
+      validationSchema={schema}
+      render={({ values, handleSubmit, isSubmitting }) => (
+        <form onSubmit={handleSubmit} className={classes.form}>
+          {isSubmitting && <LinearProgress />}
+          <Grid container spacing={3}>
+            <Grid item xs={8}>
+              <Field
+                component={TextField}
+                name="title"
+                label="Título"
+                value={values.title}
+                className={classes.formField}
+                fullWidth
+              />
+            </Grid>
+            <Grid item xs={4}>
+              <Field
+                component={TextField}
+                name="releaseYear"
+                label="Ano de Lançamento"
+                value={values.releaseYear}
+                className={classes.formField}
+                fullWidth
+              />
+            </Grid>
           </Grid>
-          <Grid item xs={4}>
-            <TextField
-              id="releaseYear"
-              name="releaseYear"
-              label="Ano de Lançamento"
-              onChange={handleInputChange}
-              value={movie.releaseYear}
-              fullWidth
-            />
-          </Grid>
-        </Grid>
-        <TextField
-          id="synopsis"
-          name="synopsis"
-          label="Sinópse"
-          onChange={handleInputChange}
-          value={movie.synopsis}
-          multiline
-          fullWidth
-        />
-        <TextField
-          id="crew"
-          name="crew"
-          label="Corpo técnico"
-          onChange={handleInputChange}
-          value={movie.crew}
-          multiline
-          fullWidth
-        />
-        <TextField
-          id="cast"
-          name="cast"
-          label="Elenco"
-          onChange={handleInputChange}
-          value={movie.cast}
-          multiline
-          fullWidth
-        />
-        <div className={classes.buttonBox}>
-          <Button type="submit" variant="contained" color="secondary">
-            Salvar
-          </Button>
-        </div>
-      </form>
-    </Paper>
+          <Field
+            component={TextField}
+            name="synopsis"
+            label="Sinópse"
+            value={values.synopsis}
+            className={classes.formField}
+            multiline
+            fullWidth
+          />
+          <Field
+            component={TextField}
+            name="crew"
+            label="Corpo técnico"
+            value={values.crew}
+            className={classes.formField}
+            multiline
+            fullWidth
+          />
+          <Field
+            component={TextField}
+            name="cast"
+            label="Elenco"
+            value={values.cast}
+            className={classes.formField}
+            multiline
+            fullWidth
+          />
+          <div className={classes.buttonBox}>
+            <Button
+              type="submit"
+              variant="contained"
+              color="secondary"
+              disabled={isSubmitting}
+            >
+              Salvar
+            </Button>
+          </div>
+        </form>
+      )}
+    />
   );
 }

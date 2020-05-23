@@ -21,7 +21,6 @@ const MyCard = styled(Card)({
 
 export default function Main() {
   const [movies, setMovies] = useState(null);
-
   async function getMovies() {
     const { data } = await api.get(`/movies`);
 

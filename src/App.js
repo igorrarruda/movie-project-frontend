@@ -2,7 +2,7 @@ import React from 'react';
 import { CssBaseline, withStyles } from '@material-ui/core';
 
 import Routes from './routes';
-import backgroundImage from './assets/images/undraw_book_lover_mkck.svg';
+import backgroundImage from './assets/images/undraw_home_cinema_l7yl.svg';
 
 const styles = (theme) => ({
   '@global': {
